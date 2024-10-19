@@ -10,17 +10,33 @@ def deploy_render():
     def procesar_tipo_1(file_path, output_file):
         # Leer el CSV y hacer modificaciones específicas del tipo 1
         file_to_modificate = pd.read_csv(file_path, decimal=".")
-        modificate_file = file_to_modificate.reindex(
-            [' BUZAMIENTO', ' DIRECCIóN DE INCLINACIóN', 'X', ' Y', ' Z', ' RUMBO', ' LONGITUD', ' ÁREA'], axis=1)
-        modificate_file = modificate_file.rename(columns={
-            ' BUZAMIENTO': 'BUZAMIENTO',
-            ' DIRECCIóN DE INCLINACIóN': "DIRECCIÓN DE INCLINACIÓN",
-            ' Z': 'Z',
-            ' RUMBO': 'RUMBO',
-            ' LONGITUD': 'LONGITUD (m)',
-            ' ÁREA': 'ÁREA (m)'})
-        modificate_file["PERSISTENCIA (m)"] = modificate_file["LONGITUD (m)"].apply(
-            lambda x: "<1" if x < 1 else "1 a 3" if x < 3 else "3 a 10" if x < 10 else "10 a 20" if x < 20 else ">20")
+        if file_to_modificate.columns.values[3]== " PENDIENTE":
+            print("este es ws12")
+            modificate_file = file_to_modificate.reindex(
+                [' PENDIENTE', ' DIRECCIóN DE PENDIENTE', 'X', ' Y', ' Z', ' RUMBO', ' LONGITUD', ' ÁREA'], axis=1)
+            modificate_file = modificate_file.rename(columns={
+                ' PENDIENTE': 'BUZAMIENTO',
+                ' DIRECCIóN DE PENDIENTE': "DIRECCIÓN DE INCLINACIÓN",
+                ' Z': 'Z',
+                ' RUMBO': 'RUMBO',
+                ' LONGITUD': 'LONGITUD (m)',
+                ' ÁREA': 'ÁREA (m)'})
+            modificate_file["PERSISTENCIA (m)"] = modificate_file["LONGITUD (m)"].apply(
+                lambda x: "<1" if x < 1 else "1 a 3" if x < 3 else "3 a 10" if x < 10 else "10 a 20" if x < 20 else ">20")
+
+        else:
+            print("este es ws07 o ws08")
+            modificate_file = file_to_modificate.reindex(
+                [' BUZAMIENTO', ' DIRECCIóN DE INCLINACIóN', 'X', ' Y', ' Z', ' RUMBO', ' LONGITUD', ' ÁREA'], axis=1)
+            modificate_file = modificate_file.rename(columns={
+                ' BUZAMIENTO': 'BUZAMIENTO',
+                ' DIRECCIóN DE INCLINACIóN': "DIRECCIÓN DE INCLINACIÓN",
+                ' Z': 'Z',
+                ' RUMBO': 'RUMBO',
+                ' LONGITUD': 'LONGITUD (m)',
+                ' ÁREA': 'ÁREA (m)'})
+            modificate_file["PERSISTENCIA (m)"] = modificate_file["LONGITUD (m)"].apply(
+                lambda x: "<1" if x < 1 else "1 a 3" if x < 3 else "3 a 10" if x < 10 else "10 a 20" if x < 20 else ">20")
 
         modificate_file.to_excel(output_file, index=False, float_format="%.3f")
 
