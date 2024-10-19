@@ -19,6 +19,7 @@ def deploy_render():
 
             # Asegurarse de que la carpeta 'uploads' existe
             os.makedirs('uploads', exist_ok=True)
+            os.makedirs('processed', exist_ok=True)
             # Guardar el archivo subido temporalmente
             file_path = os.path.join('uploads', file.filename)
             file.save(file_path)
