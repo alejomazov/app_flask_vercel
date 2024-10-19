@@ -8,15 +8,17 @@
 </head>
 <body>
     <div class="container mt-5">
+        <img src="{{ url_for('static', filename='images/logo.png') }}" width="200" height="65" />
+
         <h1>Cargar un Archivo</h1>
-        <p>En Este campo se puede poner una descripcion de lo que hace la aplicación</p>
+        <p>En este campo se puede poner una descripcion de lo que hace la aplicación</p>
         <form action="/upload" method="post" enctype="multipart/form-data">
             <div class="mb-3">
                 <label for="file" class="form-label">Seleccione un archivo CSV:</label>
                 <input type="file" class="form-control" id="file" name="file" required>
             </div>
             <div class="mb-3">
-                <p>Por ahora solo esta disponible el tipo 1, no seleccionar los otros tipos</p>
+                <p>Por ahora solo esta disponible el tipo 1, <mark>no seleccionar los otros tipos</mark></p>
                 <label for="tipo" class="form-label">Seleccione el tipo de archivo:</label>
                 <select class="form-select" id="tipo" name="tipo" required>
                     <option value="1">Tipo 1</option>
