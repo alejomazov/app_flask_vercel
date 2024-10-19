@@ -5,34 +5,11 @@ from openpyxl.styles import Border, Alignment
 import os
 
 def deploy_render():
-    
     app = Flask(__name__)
 
-    @app.route('/')
-    def index():
-        return render_template('upload.html')
-
-    @app.route('/upload', methods=['POST'])
-    def upload_file():
-        file = request.files['file']
-        if file:
-
-            # Asegurarse de que la carpeta 'uploads' existe
-            os.makedirs('uploads', exist_ok=True)
-            os.makedirs('processed', exist_ok=True)
-            # Guardar el archivo subido temporalmente
-            file_path = os.path.join('uploads', file.filename)
-            file.save(file_path)
-
-            # Procesar el archivo y generar el archivo resultante
-            processed_file_path = procesar_archivo(file_path)
-
-            # Enviar el archivo resultante de vuelta al cliente para su descarga
-            return send_file(processed_file_path, as_attachment=True, download_name='archivo_procesado.xlsx')
-
-    def procesar_archivo(archivo_csv):
-        # Leer el CSV y hacer modificaciones
-        file_to_modificate = pd.read_csv(archivo_csv, decimal=".")
+    def procesar_tipo_1(file_path, output_file):
+        # Leer el CSV y hacer modificaciones específicas del tipo 1
+        file_to_modificate = pd.read_csv(file_path, decimal=".")
         modificate_file = file_to_modificate.reindex(
             [' BUZAMIENTO', ' DIRECCIóN DE INCLINACIóN', 'X', ' Y', ' Z', ' RUMBO', ' LONGITUD', ' ÁREA'], axis=1)
         modificate_file = modificate_file.rename(columns={
@@ -45,18 +22,9 @@ def deploy_render():
         modificate_file["PERSISTENCIA (m)"] = modificate_file["LONGITUD (m)"].apply(
             lambda x: "<1" if x < 1 else "1 a 3" if x < 3 else "3 a 10" if x < 10 else "10 a 20" if x < 20 else ">20")
 
-        # Guardar el archivo en formato Excel
-        output_file = os.path.join('processed', 'archivo_procesado.xlsx')
         modificate_file.to_excel(output_file, index=False, float_format="%.3f")
 
         # Ajustar estilos en el Excel
-        ajustar_estilos_excel(output_file)
-
-        # Eliminar el archivo CSV original para mantener limpio el directorio
-        os.remove(archivo_csv)
-        return output_file
-
-    def ajustar_estilos_excel(output_file):
         workbook = load_workbook(output_file)
         worksheet = workbook.active
         for cell in worksheet[1]:
@@ -75,8 +43,61 @@ def deploy_render():
             worksheet.column_dimensions[column_letter].width = max_length + 2
 
         workbook.save(output_file)
-    return app
 
+    def procesar_tipo_2(file_path, output_file):
+        # Lógica para procesar archivos del Tipo 2
+        # Modificar este código según las necesidades del Tipo 2
+        pass
+
+    def procesar_tipo_3(file_path, output_file):
+        # Lógica para procesar archivos del Tipo 3
+        # Modificar este código según las necesidades del Tipo 3
+        pass
+
+    def procesar_tipo_4(file_path, output_file):
+        # Lógica para procesar archivos del Tipo 4
+        # Modificar este código según las necesidades del Tipo 4
+        pass
+
+    @app.route('/')
+    def home():
+        return render_template('upload.html')
+
+    @app.route('/upload', methods=['POST'])
+    def upload_file():
+        file = request.files['file']
+        tipo = request.form.get('tipo')
+        nombre_descarga = request.form.get('nombre_descarga', 'archivo_procesado')
+
+        if file and tipo:
+            # Asegurarse de que la carpeta 'uploads' existe
+            os.makedirs('uploads', exist_ok=True)
+            
+            # Guardar el archivo subido temporalmente
+            file_path = os.path.join('uploads', file.filename)
+            file.save(file_path)
+            
+            # Definir el nombre de salida para el archivo procesado
+            output_file = f"uploads/{nombre_descarga}.xlsx"
+
+            # Procesar el archivo según el tipo seleccionado
+            if tipo == "1":
+                procesar_tipo_1(file_path, output_file)
+            elif tipo == "2":
+                procesar_tipo_2(file_path, output_file)
+            elif tipo == "3":
+                procesar_tipo_3(file_path, output_file)
+            elif tipo == "4":
+                procesar_tipo_4(file_path, output_file)
+
+            # Eliminar el archivo subido para mantener el directorio limpio
+            os.remove(file_path)
+
+            # Enviar el archivo procesado de vuelta al cliente para su descarga
+            return send_file(output_file, as_attachment=True, download_name=f"{nombre_descarga}.xlsx")
+
+        return "Error: Archivo o tipo no válido"
+    return app
 if __name__ == "__main__":
     app = deploy_render()
     app.run()
