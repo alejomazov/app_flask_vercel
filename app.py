@@ -116,14 +116,38 @@ def deploy_render():
 
         workbook.save(output_file)
 
-    def procesar_tipo_3(file_path, output_file):
+    def procesar_tipo_3(file_path, output_file_tangram):
         # Lógica para procesar archivos del Tipo 3
         # Modificar este código según las necesidades del Tipo 3
-        pass
+        file_to_modificate = pd.read_csv(file_path, decimal=".")
+        modificate_file = file_to_modificate.rename(columns={"X":"Este",
+                                                             " Y": "Norte",
+                                                             " Z":"Cota"," BUZAMIENTO":"Dip",
+                                                             " DIRECCIóN DE INCLINACIóN":"Dip Direction",
+                                                             " LONGITUD":"Radio"})
+        num_row = len(modificate_file)
+        modificate_file['Tipo']=("Disco")
+        modificate_file["ID"] = range(1, num_row + 1) #asigna el id sucesivamente
+        modificate_file = modificate_file.reindex(["ID","Este","Norte","Cota","Tipo","Dip","Dip Direction","Radio"], axis=1)
+        
+        modificate_file.to_csv(output_file_tangram, index=False,sep=",")
+        
 
-    def procesar_tipo_4(file_path, output_file):
+    def procesar_tipo_4(file_path, output_file_tangram):
         # Lógica para procesar archivos del Tipo 4
         # Modificar este código según las necesidades del Tipo 4
+        file_to_modificate = pd.read_csv(file_path, decimal=".")
+        modificate_file = file_to_modificate.rename(columns={"X":"Este",
+                                                             " Y": "Norte",
+                                                             " Z":"Cota"," BUZAMIENTO":"Dip",
+                                                             " DIRECCIóN DE INCLINACIóN":"Dip Direction",
+                                                             " LONGITUD":"Radio"})
+        num_row = len(modificate_file)
+        modificate_file['Tipo']=("Otro")
+        modificate_file["ID"] = range(1, num_row + 1) #asigna el id sucesivamente
+        modificate_file = modificate_file.reindex(["ID","Este","Norte","Cota","Tipo","Dip","Dip Direction","Radio"], axis=1)
+        
+        modificate_file.to_csv(output_file_tangram, index=False,sep=",")
         pass
 
     @app.route('/')
@@ -146,6 +170,7 @@ def deploy_render():
             
             # Definir el nombre de salida para el archivo procesado
             output_file = f"uploads/{nombre_descarga}.xlsx"
+            output_file_tangram = f"uploads/{nombre_descarga}.csv"
 
             # Procesar el archivo según el tipo seleccionado
             if tipo == "1":
@@ -153,9 +178,12 @@ def deploy_render():
             elif tipo == "2":
                 procesar_tipo_2(file_path, output_file)
             elif tipo == "3":
-                procesar_tipo_3(file_path, output_file)
+                procesar_tipo_3(file_path, output_file_tangram)
+                return send_file(output_file_tangram, as_attachment=True, download_name=f"{nombre_descarga}.csv")
+                
             elif tipo == "4":
-                procesar_tipo_4(file_path, output_file)
+                procesar_tipo_4(file_path, output_file_tangram)
+                return send_file(output_file_tangram, as_attachment=True, download_name=f"{nombre_descarga}.csv")
 
             # Eliminar el archivo subido para mantener el directorio limpio
             os.remove(file_path)
