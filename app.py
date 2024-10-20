@@ -63,7 +63,58 @@ def deploy_render():
     def procesar_tipo_2(file_path, output_file):
         # Lógica para procesar archivos del Tipo 2
         # Modificar este código según las necesidades del Tipo 2
-        pass
+        file_to_modificate = pd.read_csv(file_path, decimal=".")
+        modificate_file = file_to_modificate.reindex(
+                [' BUZAMIENTO', ' DIRECCIóN DE INCLINACIóN', 'X', ' Y', ' Z', ' RUMBO', ' LONGITUD', ' ÁREA', ' NOMBRE DE OBJETO'], axis=1)
+        modificate_file = modificate_file.rename(columns={
+            ' BUZAMIENTO': 'BUZAMIENTO',
+            ' DIRECCIóN DE INCLINACIóN': "DIRECCIÓN DE INCLINACIÓN",
+            ' Z': 'Z',
+            ' RUMBO': 'RUMBO',
+            ' LONGITUD': 'LONGITUD (m)',
+            ' ÁREA': 'ÁREA (m)',
+            ' NOMBRE DE OBJETO':'NOMBRE DE OBJETO'})
+        #Agregamos la columna GRUPO, buscamos a la columna que pertence, extraemos el numero y lo agregamos 
+        # a grupo como un entero
+        modificate_file['GRUPO'] = modificate_file['NOMBRE DE OBJETO'].str.extract(r'(\d+)').astype(int)
+        
+        # Extraer el número y la letra después del guion bajo usando expresiones regulares
+        modificate_file['NUMERO'] = modificate_file['NOMBRE DE OBJETO'].str.extract(r'EST_(\d+)').astype(int)
+        modificate_file['LETRA'] = modificate_file['NOMBRE DE OBJETO'].str.extract(r'EST_\d+([a-zA-Z])')
+
+        # Ordenar por 'NUMERO' y luego por 'LETRA'
+        modificate_file = modificate_file.sort_values(by=['NUMERO', 'LETRA'])
+
+        # Eliminar las columnas auxiliares si ya no son necesarias
+        modificate_file = modificate_file.drop(columns=['NUMERO', 'LETRA'])
+
+        # Reiniciar el índice para que sea secuencial
+        modificate_file = modificate_file.reset_index(drop=True)
+        
+        # Redondear las columnas 'BUZAMIENTO' y 'DIRECCIÓN DE INCLINACIÓN' a 0 decimales
+        modificate_file[['BUZAMIENTO', 'DIRECCIÓN DE INCLINACIÓN']] = modificate_file[['BUZAMIENTO', 'DIRECCIÓN DE INCLINACIÓN']].round(0)
+
+        modificate_file.to_excel(output_file, index=False, float_format="%.2f")
+
+        # Ajustar estilos en el Excel
+        workbook = load_workbook(output_file)
+        worksheet = workbook.active
+        for cell in worksheet[1]:
+            cell.font = cell.font.copy(bold=False)
+            cell.border = Border()
+            cell.alignment = Alignment(horizontal='left')
+
+        for column in worksheet.columns:
+            max_length = 0
+            column_letter = column[0].column_letter
+            for cell in column:
+                try:
+                    max_length = max(max_length, len(str(cell.value)))
+                except:
+                    pass
+            worksheet.column_dimensions[column_letter].width = max_length + 2
+
+        workbook.save(output_file)
 
     def procesar_tipo_3(file_path, output_file):
         # Lógica para procesar archivos del Tipo 3
