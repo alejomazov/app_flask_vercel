@@ -1,4 +1,5 @@
 from flask import Flask, request, send_file, render_template
+from io import BytesIO
 import pandas as pd
 from openpyxl import load_workbook
 from openpyxl.styles import Border, Alignment
@@ -155,6 +156,9 @@ def procesar_tipo_4(file_path, output_file_tangram):
 def home():
     return render_template('upload.html')
 
+from io import BytesIO
+from flask import send_file
+
 @app.route('/upload', methods=['POST'])
 def upload_file():
     file = request.files['file']
@@ -162,35 +166,28 @@ def upload_file():
     nombre_descarga = request.form.get('nombre_descarga', 'archivo_procesado')
 
     if file and tipo:
-        # Asegurarse de que la carpeta 'uploads' existe
-        os.makedirs('uploads', exist_ok=True)
+        file_path = BytesIO(file.read())  # Leer el archivo directamente en memoria
         
-        # Guardar el archivo subido temporalmente
-        file_path = os.path.join('uploads', file.filename)
-        file.save(file_path)
-        
-        # Definir el nombre de salida para el archivo procesado
-        output_file = f"uploads/{nombre_descarga}.xlsx"
-        output_file_tangram = f"uploads/{nombre_descarga}.csv"
+        output_file = BytesIO()
+        output_file_tangram = BytesIO()
 
         # Procesar el archivo según el tipo seleccionado
         if tipo == "1":
             procesar_tipo_1(file_path, output_file)
+            output_file.seek(0)
+            return send_file(output_file, as_attachment=True, download_name=f"{nombre_descarga}.xlsx", mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
         elif tipo == "2":
             procesar_tipo_2(file_path, output_file)
+            output_file.seek(0)
+            return send_file(output_file, as_attachment=True, download_name=f"{nombre_descarga}.xlsx", mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
         elif tipo == "3":
             procesar_tipo_3(file_path, output_file_tangram)
+            output_file_tangram.seek(0)
             return send_file(output_file_tangram, as_attachment=True, download_name=f"{nombre_descarga}.csv")
-            
         elif tipo == "4":
             procesar_tipo_4(file_path, output_file_tangram)
+            output_file_tangram.seek(0)
             return send_file(output_file_tangram, as_attachment=True, download_name=f"{nombre_descarga}.csv")
-
-        # Eliminar el archivo subido para mantener el directorio limpio
-        os.remove(file_path)
-
-        # Enviar el archivo procesado de vuelta al cliente para su descarga
-        return send_file(output_file, as_attachment=True, download_name=f"{nombre_descarga}.xlsx")
 
     return "Error: Archivo o tipo no válido"
 
