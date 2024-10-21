@@ -9,9 +9,11 @@ import os
 
 app = Flask(__name__)
 
-def procesar_tipo_1(file_path, output_file):
+def procesar_tipo_1(file_path):
     # Leer el CSV y hacer modificaciones específicas del tipo 1
     file_to_modificate = pd.read_csv(file_path, decimal=".")
+
+
     if file_to_modificate.columns.values[3]== " PENDIENTE":
         print("este es ws12")
         modificate_file = file_to_modificate.reindex(
@@ -48,7 +50,7 @@ def procesar_tipo_1(file_path, output_file):
     temp_output.seek(0)  # Mover al principio para leer el archivo con openpyxl
 
     # Ajustar estilos en el Excel
-    workbook = load_workbook(output_file)
+    workbook = load_workbook(temp_output)
     worksheet = workbook.active
     for cell in worksheet[1]:
         cell.font = cell.font.copy(bold=False)
@@ -75,10 +77,11 @@ def procesar_tipo_1(file_path, output_file):
     # Devolver el nuevo archivo guardado en final_output
     return final_output
 
-def procesar_tipo_2(file_path, output_file):
+def procesar_tipo_2(file_path):
     # Lógica para procesar archivos del Tipo 2
     # Modificar este código según las necesidades del Tipo 2
     file_to_modificate = pd.read_csv(file_path, decimal=".")
+
     modificate_file = file_to_modificate.reindex(
             [' BUZAMIENTO', ' DIRECCIóN DE INCLINACIóN', 'X', ' Y', ' Z', ' RUMBO', ' LONGITUD', ' ÁREA', ' NOMBRE DE OBJETO'], axis=1)
     modificate_file = modificate_file.rename(columns={
@@ -120,7 +123,7 @@ def procesar_tipo_2(file_path, output_file):
     
 
     # Ajustar estilos en el Excel
-    workbook = load_workbook(output_file)
+    workbook = load_workbook(temp_output)
     worksheet = workbook.active
     for cell in worksheet[1]:
         cell.font = cell.font.copy(bold=False)
@@ -195,15 +198,15 @@ def upload_file():
     if file and tipo:
         file_path = BytesIO(file.read())  # Leer el archivo directamente en memoria
         
-        output_file = BytesIO()
+        
         output_file_tangram = BytesIO()
 
         # Procesar el archivo según el tipo seleccionado
         if tipo == "1":
-            final_ouput = procesar_tipo_1(file_path, output_file)
+            final_ouput = procesar_tipo_1(file_path)
             return send_file(final_ouput, as_attachment=True, download_name=f"{nombre_descarga}.xlsx", mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
         elif tipo == "2":
-            final_output = procesar_tipo_2(file_path, output_file)
+            final_output = procesar_tipo_2(file_path)
             return send_file(final_output, as_attachment=True, download_name=f"{nombre_descarga}.xlsx", mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
         elif tipo == "3":
             procesar_tipo_3(file_path, output_file_tangram)
