@@ -40,7 +40,12 @@ def procesar_tipo_1(file_path, output_file):
         modificate_file["PERSISTENCIA (m)"] = modificate_file["LONGITUD (m)"].apply(
             lambda x: "<1" if x < 1 else "1 a 3" if x < 3 else "3 a 10" if x < 10 else "10 a 20" if x < 20 else ">20")
 
-    modificate_file.to_excel(output_file, index=False, float_format="%.3f")
+     # Crear un BytesIO para la salida de pandas
+    temp_output = BytesIO()
+
+     # Guardar el archivo en el BytesIO temporal
+    modificate_file.to_excel(temp_output, index=False, float_format="%.3f")
+    temp_output.seek(0)  # Mover al principio para leer el archivo con openpyxl
 
     # Ajustar estilos en el Excel
     workbook = load_workbook(output_file)
@@ -49,6 +54,8 @@ def procesar_tipo_1(file_path, output_file):
         cell.font = cell.font.copy(bold=False)
         cell.border = Border()
         cell.alignment = Alignment(horizontal='left')
+
+        print("el archivo esta siendo modificado en excel")
 
     for column in worksheet.columns:
         max_length = 0
@@ -60,7 +67,13 @@ def procesar_tipo_1(file_path, output_file):
                 pass
         worksheet.column_dimensions[column_letter].width = max_length + 2
 
-    workbook.save(output_file)
+    # Crear un nuevo BytesIO para el archivo final
+    final_output = BytesIO()
+    workbook.save(final_output)  # Guardar el archivo modificado en este nuevo BytesIO
+    final_output.seek(0)  # Mover al principio para ser enviado al cliente
+    
+    # Devolver el nuevo archivo guardado en final_output
+    return final_output
 
 def procesar_tipo_2(file_path, output_file):
     # Lógica para procesar archivos del Tipo 2
@@ -96,7 +109,15 @@ def procesar_tipo_2(file_path, output_file):
     # Redondear las columnas 'BUZAMIENTO' y 'DIRECCIÓN DE INCLINACIÓN' a 0 decimales
     modificate_file[['BUZAMIENTO', 'DIRECCIÓN DE INCLINACIÓN']] = modificate_file[['BUZAMIENTO', 'DIRECCIÓN DE INCLINACIÓN']].round(0)
 
-    modificate_file.to_excel(output_file, index=False, float_format="%.2f")
+
+        # Crear un BytesIO para la salida de pandas
+    temp_output = BytesIO()
+
+     # Guardar el archivo en el BytesIO temporal
+    modificate_file.to_excel(temp_output, index=False, float_format="%.3f")
+    temp_output.seek(0)  # Mover al principio para leer el archivo con openpyxl
+
+    
 
     # Ajustar estilos en el Excel
     workbook = load_workbook(output_file)
@@ -116,7 +137,13 @@ def procesar_tipo_2(file_path, output_file):
                 pass
         worksheet.column_dimensions[column_letter].width = max_length + 2
 
-    workbook.save(output_file)
+    final_output = BytesIO()
+    workbook.save(final_output)  # Guardar el archivo modificado en este nuevo BytesIO
+    final_output.seek(0)  # Mover al principio para ser enviado al cliente
+    
+    # Devolver el nuevo archivo guardado en final_output
+    return final_output
+
 
 def procesar_tipo_3(file_path, output_file_tangram):
     # Lógica para procesar archivos del Tipo 3
@@ -173,13 +200,11 @@ def upload_file():
 
         # Procesar el archivo según el tipo seleccionado
         if tipo == "1":
-            procesar_tipo_1(file_path, output_file)
-            output_file.seek(0)
-            return send_file(output_file, as_attachment=True, download_name=f"{nombre_descarga}.xlsx", mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+            final_ouput = procesar_tipo_1(file_path, output_file)
+            return send_file(final_ouput, as_attachment=True, download_name=f"{nombre_descarga}.xlsx", mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
         elif tipo == "2":
-            procesar_tipo_2(file_path, output_file)
-            output_file.seek(0)
-            return send_file(output_file, as_attachment=True, download_name=f"{nombre_descarga}.xlsx", mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+            final_output = procesar_tipo_2(file_path, output_file)
+            return send_file(final_output, as_attachment=True, download_name=f"{nombre_descarga}.xlsx", mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
         elif tipo == "3":
             procesar_tipo_3(file_path, output_file_tangram)
             output_file_tangram.seek(0)
