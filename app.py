@@ -15,7 +15,7 @@ def procesar_tipo_1(file_path):
 
 
     if file_to_modificate.columns.values[3]== " PENDIENTE":
-        print("este es ws12")
+        
         modificate_file = file_to_modificate.reindex(
             [' PENDIENTE', ' DIRECCIóN DE PENDIENTE', 'X', ' Y', ' Z', ' RUMBO', ' LONGITUD', ' ÁREA'], axis=1)
         modificate_file = modificate_file.rename(columns={
@@ -29,7 +29,6 @@ def procesar_tipo_1(file_path):
             lambda x: "<1" if x < 1 else "1 a 3" if x < 3 else "3 a 10" if x < 10 else "10 a 20" if x < 20 else ">20")
 
     else:
-        print("este es ws07 o ws08")
         modificate_file = file_to_modificate.reindex(
             [' BUZAMIENTO', ' DIRECCIóN DE INCLINACIóN', 'X', ' Y', ' Z', ' RUMBO', ' LONGITUD', ' ÁREA'], axis=1)
         modificate_file = modificate_file.rename(columns={
@@ -44,7 +43,7 @@ def procesar_tipo_1(file_path):
 
      # Crear un BytesIO para la salida de pandas
     temp_output = BytesIO()
-
+    
      # Guardar el archivo en el BytesIO temporal
     modificate_file.to_excel(temp_output, index=False, float_format="%.3f")
     temp_output.seek(0)  # Mover al principio para leer el archivo con openpyxl
@@ -56,8 +55,6 @@ def procesar_tipo_1(file_path):
         cell.font = cell.font.copy(bold=False)
         cell.border = Border()
         cell.alignment = Alignment(horizontal='left')
-
-        print("el archivo esta siendo modificado en excel")
 
     for column in worksheet.columns:
         max_length = 0
@@ -180,8 +177,7 @@ def procesar_tipo_4(file_path, output_file_tangram):
     modificate_file = modificate_file.reindex(["ID","Este","Norte","Cota","Tipo","Dip","Dip Direction","Radio"], axis=1)
     
     modificate_file.to_csv(output_file_tangram, index=False,sep=",")
-    pass
-
+   
 @app.route('/')
 def home():
     return render_template('upload.html')
